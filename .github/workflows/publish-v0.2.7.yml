@@ -1,0 +1,56 @@
+name: Publish RetreatUI Launcher v0.2.7
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: launcher-v0.2.7
+      ARTIFACT_URL: "https://sdmntprpolandcentral.oaiusercontent.com/files/00000000-a904-820a-9f3a-2069d1f0ab86/raw?se=2026-07-30T08:38:02Z&sp=r&sv=2026-02-06&sr=b&scid=0702696c-b20c-52b5-9867-d2b4ad9f4bd0&skoid=e5f84a89-964a-4fd3-92c2-c2cb3a12ea16&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-07-29T23:36:52Z&ske=2026-07-31T23:36:52Z&sks=b&skv=2026-02-06&sig=nmcZWYqXjBY9q%2BBHgBAEu4pMZXzdeBLgmo032atYhG8%3D"
+      ARTIFACT_SHA256: 806308c4b76f12be823ba11342c6580677d3400469ea143338b597ab5dfdc8f7
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download validated private build
+        run: |
+          curl --fail --location --retry 3 "$ARTIFACT_URL" --output launcher-artifact.zip
+          echo "$ARTIFACT_SHA256  launcher-artifact.zip" | sha256sum -c -
+          unzip -q launcher-artifact.zip -d artifact
+
+      - name: Validate release files
+        run: |
+          test -f artifact/publish/RetreatUI_Launcher.exe
+          test -f artifact/publish/RetreatUI_Launcher.exe.sha256
+          test -f artifact/RetreatUI_Launcher_win-x64.zip
+          (cd artifact/publish && sha256sum -c RetreatUI_Launcher.exe.sha256)
+          cp artifact/publish/RetreatUI_Launcher.exe .
+          cp artifact/publish/RetreatUI_Launcher.exe.sha256 .
+          cp artifact/RetreatUI_Launcher_win-x64.zip .
+
+      - name: Publish public self-update test release
+        run: |
+          cat > release-notes.md <<'MD'
+          ## RetreatUI Launcher v0.2.7
+
+          Self-update validation release.
+
+          - Confirms that launchers from v0.2.6 onward can discover updates from the public binary-only release channel.
+          - Keeps SHA-256 verification, executable backup and automatic rollback.
+          - Contains no addon changes.
+          MD
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" RetreatUI_Launcher.exe RetreatUI_Launcher.exe.sha256 RetreatUI_Launcher_win-x64.zip --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --title "RetreatUI Launcher v0.2.7" --notes-file release-notes.md --latest
+          else
+            gh release create "$TAG" RetreatUI_Launcher.exe RetreatUI_Launcher.exe.sha256 RetreatUI_Launcher_win-x64.zip --repo "$GITHUB_REPOSITORY" --title "RetreatUI Launcher v0.2.7" --notes-file release-notes.md --latest
+          fi
