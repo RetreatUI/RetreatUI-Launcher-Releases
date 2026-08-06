@@ -1,5 +1,25 @@
 [
   {
+    "tag_name": "launcher-v0.3.5",
+    "name": "RetreatUI Launcher v0.3.5",
+    "body": "Moves normal launcher and addon update checks to lightweight public CDN feeds, fixing anonymous GitHub API rate-limit failures while retaining verified GitHub Releases downloads.",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-08-06T14:34:03Z",
+    "assets": [
+      {
+        "name": "RetreatUI_Launcher.exe",
+        "browser_download_url": "https://github.com/RetreatUI/RetreatUI-Launcher-Releases/releases/download/launcher-v0.3.5/RetreatUI_Launcher.exe",
+        "size": 72033797
+      },
+      {
+        "name": "RetreatUI_Launcher.exe.sha256",
+        "browser_download_url": "https://github.com/RetreatUI/RetreatUI-Launcher-Releases/releases/download/launcher-v0.3.5/RetreatUI_Launcher.exe.sha256",
+        "size": 90
+      }
+    ]
+  },
+  {
     "tag_name": "launcher-v0.3.4",
     "name": "RetreatUI Launcher v0.3.4",
     "body": "Reference-matched dark fantasy redesign with integrated Project Ascension and Burning Crusade branding.",
