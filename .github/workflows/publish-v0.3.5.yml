@@ -2,7 +2,8 @@ name: Publish RetreatUI Launcher v0.3.5
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - ".github/workflows/publish-v0.3.5.yml"
 
@@ -25,6 +26,19 @@ jobs:
           cd artifact/publish
           sha256sum --check RetreatUI_Launcher.exe.sha256
 
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'EOF'
+          ## Rate-limit fix
+
+          - Moves normal launcher and addon update checks away from GitHub's anonymous REST API to lightweight public CDN feeds.
+          - Fixes the 403 rate-limit error that caused Offline and Retry states.
+          - Keeps GitHub Releases downloads, SHA-256 verification and downloaded-version validation.
+          - Keeps the v0.3.4 approved dark fantasy layout unchanged.
+
+          This is a one-time manual transition for users whose older launcher can no longer reach the self-update endpoint. Future updates from v0.3.5 use the new feed.
+          EOF
+
       - name: Publish public launcher release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -35,10 +49,4 @@ jobs:
             artifact/RetreatUI_Launcher_win-x64.zip \
             --repo RetreatUI/RetreatUI-Launcher-Releases \
             --title "RetreatUI Launcher v0.3.5" \
-            --notes "## Rate-limit fix
-- Moves normal launcher and addon update checks away from GitHub's anonymous REST API to lightweight public CDN feeds.
-- Fixes the 403 rate-limit error that caused Offline and Retry states.
-- Keeps GitHub Releases downloads, SHA-256 verification and downloaded-version validation.
-- Keeps the v0.3.4 approved dark fantasy layout unchanged.
-
-This is a one-time manual transition for users whose older launcher can no longer reach the self-update endpoint. Future updates from v0.3.5 use the new feed."
+            --notes-file release-notes.md
