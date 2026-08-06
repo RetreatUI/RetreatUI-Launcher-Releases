@@ -1,4 +1,4 @@
-# Explicit second push trigger after workflow registration
+# Explicit event trigger after workflow registration
 name: Publish RetreatUI addon v1.1.6
 
 on:
@@ -7,12 +7,16 @@ on:
     paths:
       - ".github/workflows/publish-addon-v1.1.6.yml"
   workflow_dispatch:
+  issues:
+    types: [opened]
 
 permissions:
   contents: write
+  issues: read
 
 jobs:
   publish:
+    if: github.event_name != 'issues' || github.event.issue.title == 'Publish addon 1.1.6 now'
     runs-on: ubuntu-latest
     steps:
       - name: Check out release repository
