@@ -1,0 +1,60 @@
+name: Publish RetreatUI Launcher v0.3.4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-v0.3.4.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Download verified v0.3.4 build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $url = 'https://sdmntpritalynorth.oaiusercontent.com/files/00000000-1cfc-8246-84e1-cb787d652ff2/raw?se=2026-08-06T14%3A20%3A17Z&sp=r&sv=2026-02-06&sr=b&scid=df82236d-dd68-5d66-8d76-8ef1ed3fc4b3&skoid=b971d227-1348-4524-8797-edb0fdf15147&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-06T05%3A52%3A16Z&ske=2026-08-07T05%3A52%3A16Z&sks=b&skv=2026-02-06&sig=aR2WAZacl6QoQqZ8lpSYnenVc4Xdfer1VX2GC99tBUY%3D'
+          Invoke-WebRequest -Uri $url -OutFile 'artifact.zip'
+          Expand-Archive -LiteralPath 'artifact.zip' -DestinationPath 'artifact' -Force
+
+          Copy-Item 'artifact/publish/RetreatUI_Launcher.exe' 'RetreatUI_Launcher.exe'
+          Copy-Item 'artifact/publish/RetreatUI_Launcher.exe.sha256' 'RetreatUI_Launcher.exe.sha256'
+          Copy-Item 'artifact/RetreatUI_Launcher_win-x64.zip' 'RetreatUI_Launcher_win-x64.zip'
+
+          $expected = (Get-Content 'RetreatUI_Launcher.exe.sha256' -Raw).Split(' ', [System.StringSplitOptions]::RemoveEmptyEntries)[0].Trim().ToLowerInvariant()
+          $actual = (Get-FileHash -LiteralPath 'RetreatUI_Launcher.exe' -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($expected -ne $actual) {
+            throw "Checksum mismatch: expected $expected, received $actual"
+          }
+
+          $version = (Get-Item 'RetreatUI_Launcher.exe').VersionInfo.FileVersion
+          if (!$version.StartsWith('0.3.4')) {
+            throw "Unexpected launcher version: $version"
+          }
+
+      - name: Publish public launcher release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: launcher-v0.3.4
+          name: RetreatUI Launcher v0.3.4
+          body: |
+            ## Reference-matched dark fantasy redesign
+            - Rebuilt the launcher around the approved 4:3 reference composition.
+            - Enlarged the RetreatUI header branding and refined gold fantasy typography.
+            - Integrated Project Ascension and Burning Crusade logos through masks, tint, texture and subtle edge glow instead of flat pasted graphics.
+            - Matched the clean rectangular game selectors, selected-state rings, detail panel, release notes and footer controls from the reference.
+            - Added shield, folder and launch icons as native XAML vectors.
+
+            ## Existing functionality
+            CoA/TBC folders, Stable/Beta channels, automatic updates, release filtering, installation and launch controls remain unchanged.
+          draft: false
+          prerelease: false
+          files: |
+            RetreatUI_Launcher.exe
+            RetreatUI_Launcher.exe.sha256
+            RetreatUI_Launcher_win-x64.zip
