@@ -1,5 +1,20 @@
 [
   {
+    "tag_name": "v1.1.4",
+    "name": "RetreatUI 1.1.4",
+    "body": "RetreatUI 1.1.4 adds a distinct tank no-aggro warning for caster and mana-user TurboPlates, removes duplicate HUD spells such as Unleash Pestilence, moves the Guardian stance tracker clear of the resource bar, and prevents party-frame name and health text overlap.",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-08-06T18:37:31Z",
+    "assets": [
+      {
+        "name": "RetreatUI_v1.1.4.zip",
+        "browser_download_url": "https://codeload.github.com/RetreatUI/RetreatUI-Addon/zip/c94862592e9e0b3de3eb8510be222f6db776863a",
+        "size": 0
+      }
+    ]
+  },
+  {
     "tag_name": "v1.1.3",
     "name": "RetreatUI 1.1.3",
     "body": "RetreatUI 1.1.3 reorganizes class HUDs so learned offensive and rotational abilities stay on Main, while defensive and utility abilities stay on Utility. Main now wraps after nine icons, including the custom Knight of Xoroth HUD. The release also includes the verified Eternal Bloodmage classifications, additional class cooldown coverage, and Ascension-focused stability improvements.",
