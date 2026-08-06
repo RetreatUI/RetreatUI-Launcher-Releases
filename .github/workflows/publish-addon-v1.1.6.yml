@@ -1,22 +1,16 @@
-# Explicit event trigger after workflow registration
+# Server-scheduled publisher; removes itself after a successful release.
 name: Publish RetreatUI addon v1.1.6
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/publish-addon-v1.1.6.yml"
   workflow_dispatch:
-  issues:
-    types: [opened]
+  schedule:
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
-  issues: read
 
 jobs:
   publish:
-    if: github.event_name != 'issues' || github.event.issue.title == 'Publish addon 1.1.6 now'
     runs-on: ubuntu-latest
     steps:
       - name: Check out release repository
