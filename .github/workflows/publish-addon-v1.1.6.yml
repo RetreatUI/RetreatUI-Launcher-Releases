@@ -1,3 +1,4 @@
+# Explicit second push trigger after workflow registration
 name: Publish RetreatUI addon v1.1.6
 
 on:
@@ -5,6 +6,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/publish-addon-v1.1.6.yml"
+  workflow_dispatch:
 
 permissions:
   contents: write
