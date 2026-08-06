@@ -1,0 +1,44 @@
+name: Publish RetreatUI Launcher v0.3.5
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-v0.3.5.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified v0.3.5 build
+        env:
+          BUILD_URL: "https://sdmntprnortheu.oaiusercontent.com/files/00000000-1ae0-81f4-9582-804c5e1c61c4/raw?se=2026-08-06T14%3A36%3A56Z&sp=r&sv=2026-02-06&sr=b&scid=12370fa3-57c9-5cd4-9a90-55e1d14b2a2a&skoid=b971d227-1348-4524-8797-edb0fdf15147&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-06T06%3A49%3A42Z&ske=2026-08-07T06%3A49%3A42Z&sks=b&skv=2026-02-06&sig=QUMqIwj5ch7EDpGbuxkchNMKNOjgYhjOyO4qmWD3Bnc%3D"
+        run: |
+          curl --fail --location --retry 3 "$BUILD_URL" --output artifact.zip
+          unzip -q artifact.zip -d artifact
+          test -f artifact/publish/RetreatUI_Launcher.exe
+          test -f artifact/publish/RetreatUI_Launcher.exe.sha256
+          test -f artifact/RetreatUI_Launcher_win-x64.zip
+          cd artifact/publish
+          sha256sum --check RetreatUI_Launcher.exe.sha256
+
+      - name: Publish public launcher release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create launcher-v0.3.5 \
+            artifact/publish/RetreatUI_Launcher.exe \
+            artifact/publish/RetreatUI_Launcher.exe.sha256 \
+            artifact/RetreatUI_Launcher_win-x64.zip \
+            --repo RetreatUI/RetreatUI-Launcher-Releases \
+            --title "RetreatUI Launcher v0.3.5" \
+            --notes "## Rate-limit fix
+- Moves normal launcher and addon update checks away from GitHub's anonymous REST API to lightweight public CDN feeds.
+- Fixes the 403 rate-limit error that caused Offline and Retry states.
+- Keeps GitHub Releases downloads, SHA-256 verification and downloaded-version validation.
+- Keeps the v0.3.4 approved dark fantasy layout unchanged.
+
+This is a one-time manual transition for users whose older launcher can no longer reach the self-update endpoint. Future updates from v0.3.5 use the new feed."
