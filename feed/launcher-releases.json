@@ -1,0 +1,22 @@
+[
+  {
+    "tag_name": "launcher-v0.3.4",
+    "name": "RetreatUI Launcher v0.3.4",
+    "body": "Reference-matched dark fantasy redesign with integrated Project Ascension and Burning Crusade branding.",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-08-06T14:16:43Z",
+    "assets": [
+      {
+        "name": "RetreatUI_Launcher.exe",
+        "browser_download_url": "https://github.com/RetreatUI/RetreatUI-Launcher-Releases/releases/download/launcher-v0.3.4/RetreatUI_Launcher.exe",
+        "size": 72029701
+      },
+      {
+        "name": "RetreatUI_Launcher.exe.sha256",
+        "browser_download_url": "https://github.com/RetreatUI/RetreatUI-Launcher-Releases/releases/download/launcher-v0.3.4/RetreatUI_Launcher.exe.sha256",
+        "size": 90
+      }
+    ]
+  }
+]
