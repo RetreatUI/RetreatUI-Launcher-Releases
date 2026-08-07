@@ -1,4 +1,4 @@
-name: Recover RetreatUI Launcher v0.3.8
+name: Recover RetreatUI public releases
 
 on:
   push:
@@ -12,112 +12,99 @@ permissions:
 
 jobs:
   recover:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
 
-      - name: Recover exact verified 0.3.8 assets from runner cache
-        shell: pwsh
+      - name: Download exact verified source release assets
+        shell: bash
         run: |
-          $ErrorActionPreference = "Stop"
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          $workRoot = Split-Path -Parent $env:RUNNER_WORKSPACE
-          $source = Join-Path $workRoot "RetreatUI-Launcher\RetreatUI-Launcher\dist"
-          Write-Host "Recovering from $source"
-          $names = @("RetreatUI_Launcher.exe", "RetreatUI_Launcher.exe.sha256", "RetreatUI_Launcher_win-x64.zip")
-          foreach ($name in $names) {
-            $from = Join-Path $source $name
-            if (!(Test-Path -LiteralPath $from)) { throw "Cached verified asset is missing: $from" }
-            Copy-Item -LiteralPath $from -Destination (Join-Path "dist" $name) -Force
-          }
-          $exe = "dist/RetreatUI_Launcher.exe"
-          $checksum = "dist/RetreatUI_Launcher.exe.sha256"
-          $zip = "dist/RetreatUI_Launcher_win-x64.zip"
-          if ((Get-Item -LiteralPath $exe).Length -ne 72064586) { throw "Unexpected EXE size." }
-          if ((Get-Item -LiteralPath $checksum).Length -ne 90) { throw "Unexpected checksum size." }
-          if ((Get-Item -LiteralPath $zip).Length -ne 66592334) { throw "Unexpected ZIP size." }
-          $exeHash = (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()
-          $zipHash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($exeHash -ne "5aaf2a44a57c51fcdaef1cb7bd568a46fa9b481f3a4c833a998477ec6a0a904d") { throw "EXE hash mismatch: $exeHash" }
-          if ($zipHash -ne "3be17c87589d56ad1844529114f9247cc7c92c917bafbf537644b952652014b0") { throw "ZIP hash mismatch: $zipHash" }
-          $expected = (Get-Content -LiteralPath $checksum -Raw).Trim().Split()[0].ToLowerInvariant()
-          if ($expected -ne $exeHash) { throw "Checksum file does not match EXE." }
+          set -euo pipefail
+          mkdir -p dist/addon dist/launcher
+          curl -fL --retry 4 --retry-delay 2 \
+            -o dist/addon/RetreatUI_v1.1.6.zip \
+            https://github.com/RetreatUI/RetreatUI-Addon/releases/download/v1.1.6/RetreatUI_v1.1.6.zip
+          curl -fL --retry 4 --retry-delay 2 \
+            -o dist/addon/RetreatUI_v1.1.6.zip.sha256 \
+            https://github.com/RetreatUI/RetreatUI-Addon/releases/download/v1.1.6/RetreatUI_v1.1.6.zip.sha256
+          curl -fL --retry 4 --retry-delay 2 \
+            -o dist/launcher/RetreatUI_Launcher.exe \
+            https://github.com/RetreatUI/RetreatUI-Launcher/releases/download/launcher-v0.3.8/RetreatUI_Launcher.exe
+          curl -fL --retry 4 --retry-delay 2 \
+            -o dist/launcher/RetreatUI_Launcher.exe.sha256 \
+            https://github.com/RetreatUI/RetreatUI-Launcher/releases/download/launcher-v0.3.8/RetreatUI_Launcher.exe.sha256
+          curl -fL --retry 4 --retry-delay 2 \
+            -o dist/launcher/RetreatUI_Launcher_win-x64.zip \
+            https://github.com/RetreatUI/RetreatUI-Launcher/releases/download/launcher-v0.3.8/RetreatUI_Launcher_win-x64.zip
 
-      - name: Publish public launcher release
-        shell: pwsh
+      - name: Verify exact source assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(stat -c%s dist/addon/RetreatUI_v1.1.6.zip)" = "12899842"
+          test "$(stat -c%s dist/addon/RetreatUI_v1.1.6.zip.sha256)" = "87"
+          test "$(stat -c%s dist/launcher/RetreatUI_Launcher.exe)" = "72064586"
+          test "$(stat -c%s dist/launcher/RetreatUI_Launcher.exe.sha256)" = "90"
+          test "$(stat -c%s dist/launcher/RetreatUI_Launcher_win-x64.zip)" = "66592334"
+
+          ADDON_HASH="$(sha256sum dist/addon/RetreatUI_v1.1.6.zip | awk '{print $1}')"
+          LAUNCHER_HASH="$(sha256sum dist/launcher/RetreatUI_Launcher.exe | awk '{print $1}')"
+          LAUNCHER_ZIP_HASH="$(sha256sum dist/launcher/RetreatUI_Launcher_win-x64.zip | awk '{print $1}')"
+          test "$ADDON_HASH" = "e8b9d748ba47eea77d752b7c82de6782587808ad8ce61a5fc69acc31efaf9510"
+          test "$LAUNCHER_HASH" = "5aaf2a44a57c51fcdaef1cb7bd568a46fa9b481f3a4c833a998477ec6a0a904d"
+          test "$LAUNCHER_ZIP_HASH" = "3be17c87589d56ad1844529114f9247cc7c92c917bafbf537644b952652014b0"
+          test "$(awk '{print tolower($1); exit}' dist/addon/RetreatUI_v1.1.6.zip.sha256)" = "$ADDON_HASH"
+          test "$(awk '{print tolower($1); exit}' dist/launcher/RetreatUI_Launcher.exe.sha256)" = "$LAUNCHER_HASH"
+
+      - name: Publish exact assets to public release repository
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $ErrorActionPreference = "Stop"
-          @"
-          ## RetreatUI Launcher 0.3.8
+          set -euo pipefail
+          if gh release view addon-v1.1.6 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload addon-v1.1.6 dist/addon/RetreatUI_v1.1.6.zip dist/addon/RetreatUI_v1.1.6.zip.sha256 --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit addon-v1.1.6 --repo "$GITHUB_REPOSITORY" --title "RetreatUI 1.1.6" --notes "Verified public mirror of RetreatUI 1.1.6."
+          else
+            gh release create addon-v1.1.6 dist/addon/RetreatUI_v1.1.6.zip dist/addon/RetreatUI_v1.1.6.zip.sha256 --repo "$GITHUB_REPOSITORY" --title "RetreatUI 1.1.6" --notes "Verified public mirror of RetreatUI 1.1.6."
+          fi
 
-          - Removes blurred edition-card artwork and keeps selected text sharp.
-          - Corrects the Burning Crusade label.
-          - Uses only verified GitHub release assets for Latest on channel.
-          - Compares public feeds with live GitHub releases and rejects stale or invalid entries.
-          - Includes SHA-256 verification assets.
-          "@ | Set-Content -LiteralPath release-notes.md -Encoding utf8
-          gh release view launcher-v0.3.8 --repo $env:GITHUB_REPOSITORY *> $null
-          if ($LASTEXITCODE -eq 0) {
-            gh release upload launcher-v0.3.8 `
-              "dist/RetreatUI_Launcher.exe" `
-              "dist/RetreatUI_Launcher.exe.sha256" `
-              "dist/RetreatUI_Launcher_win-x64.zip" `
-              --repo $env:GITHUB_REPOSITORY --clobber
-            gh release edit launcher-v0.3.8 --repo $env:GITHUB_REPOSITORY --title "RetreatUI Launcher v0.3.8" --notes-file release-notes.md
-          } else {
-            gh release create launcher-v0.3.8 `
-              "dist/RetreatUI_Launcher.exe" `
-              "dist/RetreatUI_Launcher.exe.sha256" `
-              "dist/RetreatUI_Launcher_win-x64.zip" `
-              --repo $env:GITHUB_REPOSITORY `
-              --title "RetreatUI Launcher v0.3.8" `
-              --notes-file release-notes.md
-          }
+          if gh release view launcher-v0.3.8 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload launcher-v0.3.8 dist/launcher/RetreatUI_Launcher.exe dist/launcher/RetreatUI_Launcher.exe.sha256 dist/launcher/RetreatUI_Launcher_win-x64.zip --repo "$GITHUB_REPOSITORY" --clobber
+            gh release edit launcher-v0.3.8 --repo "$GITHUB_REPOSITORY" --title "RetreatUI Launcher v0.3.8" --notes "Verified public mirror of RetreatUI Launcher 0.3.8."
+          else
+            gh release create launcher-v0.3.8 dist/launcher/RetreatUI_Launcher.exe dist/launcher/RetreatUI_Launcher.exe.sha256 dist/launcher/RetreatUI_Launcher_win-x64.zip --repo "$GITHUB_REPOSITORY" --title "RetreatUI Launcher v0.3.8" --notes "Verified public mirror of RetreatUI Launcher 0.3.8."
+          fi
 
-      - name: Verify published assets and update feed
-        shell: pwsh
+      - name: Verify public releases and update feeds
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $ErrorActionPreference = "Stop"
-          $release = gh api "/repos/$env:GITHUB_REPOSITORY/releases/tags/launcher-v0.3.8" | ConvertFrom-Json
-          $expected = @{
-            "RetreatUI_Launcher.exe" = 72064586
-            "RetreatUI_Launcher.exe.sha256" = 90
-            "RetreatUI_Launcher_win-x64.zip" = 66592334
-          }
-          foreach ($name in $expected.Keys) {
-            $asset = $release.assets | Where-Object { $_.name -eq $name }
-            if (!$asset) { throw "Missing public asset: $name" }
-            if ([int64]$asset.size -ne [int64]$expected[$name]) { throw "Public size mismatch: $name" }
-            if ($asset.browser_download_url -notlike "*/releases/download/launcher-v0.3.8/*") { throw "Unexpected public URL: $name" }
-          }
-          $feedPath = "feed/launcher-releases.json"
-          $items = @(Get-Content -LiteralPath $feedPath -Raw | ConvertFrom-Json)
-          $items = @($items | Where-Object { $_.tag_name -ne "launcher-v0.3.8" })
-          $assets = @()
-          foreach ($name in @("RetreatUI_Launcher.exe", "RetreatUI_Launcher.exe.sha256", "RetreatUI_Launcher_win-x64.zip")) {
-            $asset = $release.assets | Where-Object { $_.name -eq $name }
-            $assets += [ordered]@{ name = $asset.name; browser_download_url = $asset.browser_download_url; size = [int64]$asset.size }
-          }
-          $entry = [ordered]@{
-            tag_name = "launcher-v0.3.8"
-            name = "RetreatUI Launcher v0.3.8"
-            body = "Sharp edition cards, corrected Burning Crusade label, verified release selection, merged feed/API update checks, and SHA-256 verification."
-            draft = $false
-            prerelease = $false
-            published_at = $release.published_at
-            assets = $assets
-          }
-          $all = @($entry) + $items
-          $json = $all | Select-Object -First 30 | ConvertTo-Json -Depth 8
-          Set-Content -LiteralPath $feedPath -Value $json -Encoding utf8
+          set -euo pipefail
+          ADDON_JSON="$(gh api "/repos/$GITHUB_REPOSITORY/releases/tags/addon-v1.1.6")"
+          LAUNCHER_JSON="$(gh api "/repos/$GITHUB_REPOSITORY/releases/tags/launcher-v0.3.8")"
+
+          echo "$ADDON_JSON" | jq -e '.draft == false and .prerelease == false' >/dev/null
+          echo "$ADDON_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_v1.1.6.zip" and .size == 12899842 and .digest == "sha256:e8b9d748ba47eea77d752b7c82de6782587808ad8ce61a5fc69acc31efaf9510")' >/dev/null
+          echo "$ADDON_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_v1.1.6.zip.sha256" and .size == 87)' >/dev/null
+          echo "$LAUNCHER_JSON" | jq -e '.draft == false and .prerelease == false' >/dev/null
+          echo "$LAUNCHER_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_Launcher.exe" and .size == 72064586 and .digest == "sha256:5aaf2a44a57c51fcdaef1cb7bd568a46fa9b481f3a4c833a998477ec6a0a904d")' >/dev/null
+          echo "$LAUNCHER_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_Launcher.exe.sha256" and .size == 90)' >/dev/null
+          echo "$LAUNCHER_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_Launcher_win-x64.zip" and .size == 66592334 and .digest == "sha256:3be17c87589d56ad1844529114f9247cc7c92c917bafbf537644b952652014b0")' >/dev/null
+
+          ADDON_ENTRY="$(echo "$ADDON_JSON" | jq '{tag_name:"v1.1.6",name:"RetreatUI 1.1.6",body:"Verified RetreatUI 1.1.6 public release.",draft:false,prerelease:false,published_at:.published_at,assets:[.assets[] | select(.name == "RetreatUI_v1.1.6.zip" or .name == "RetreatUI_v1.1.6.zip.sha256") | {name,browser_download_url,size}]}')"
+          LAUNCHER_ENTRY="$(echo "$LAUNCHER_JSON" | jq '{tag_name:"launcher-v0.3.8",name:"RetreatUI Launcher v0.3.8",body:"Verified RetreatUI Launcher 0.3.8 public release.",draft:false,prerelease:false,published_at:.published_at,assets:[.assets[] | select(.name == "RetreatUI_Launcher.exe" or .name == "RetreatUI_Launcher.exe.sha256" or .name == "RetreatUI_Launcher_win-x64.zip") | {name,browser_download_url,size}]}')"
+
+          jq --argjson entry "$ADDON_ENTRY" '[ $entry ] + [ .[] | select(.tag_name != "v1.1.6") ] | .[:30]' feed/addon-releases.json > feed/addon-releases.json.tmp
+          mv feed/addon-releases.json.tmp feed/addon-releases.json
+          jq --argjson entry "$LAUNCHER_ENTRY" '[ $entry ] + [ .[] | select(.tag_name != "launcher-v0.3.8") ] | .[:30]' feed/launcher-releases.json > feed/launcher-releases.json.tmp
+          mv feed/launcher-releases.json.tmp feed/launcher-releases.json
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $feedPath
+          git add feed/addon-releases.json feed/launcher-releases.json
           git rm .github/workflows/recover-launcher-v0.3.8.yml
-          git commit -m "Publish verified launcher 0.3.8 and update feed"
+          git commit -m "Publish verified addon 1.1.6 and launcher 0.3.8 feeds"
           git push
