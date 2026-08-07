@@ -22,21 +22,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist/addon dist/launcher
-          curl -fL --retry 4 --retry-delay 2 \
-            -o dist/addon/RetreatUI_v1.1.6.zip \
-            https://github.com/RetreatUI/RetreatUI-Addon/releases/download/v1.1.6/RetreatUI_v1.1.6.zip
-          curl -fL --retry 4 --retry-delay 2 \
-            -o dist/addon/RetreatUI_v1.1.6.zip.sha256 \
-            https://github.com/RetreatUI/RetreatUI-Addon/releases/download/v1.1.6/RetreatUI_v1.1.6.zip.sha256
-          curl -fL --retry 4 --retry-delay 2 \
-            -o dist/launcher/RetreatUI_Launcher.exe \
-            https://github.com/RetreatUI/RetreatUI-Launcher/releases/download/launcher-v0.3.8/RetreatUI_Launcher.exe
-          curl -fL --retry 4 --retry-delay 2 \
-            -o dist/launcher/RetreatUI_Launcher.exe.sha256 \
-            https://github.com/RetreatUI/RetreatUI-Launcher/releases/download/launcher-v0.3.8/RetreatUI_Launcher.exe.sha256
-          curl -fL --retry 4 --retry-delay 2 \
-            -o dist/launcher/RetreatUI_Launcher_win-x64.zip \
-            https://github.com/RetreatUI/RetreatUI-Launcher/releases/download/launcher-v0.3.8/RetreatUI_Launcher_win-x64.zip
+          curl -fL --retry 4 --retry-delay 2 -o dist/addon/RetreatUI_v1.1.6.zip \
+            "https://github.com/RetreatUI/RetreatUI-Addon/releases/download/v1.1.6/RetreatUI_v1.1.6.zip"
+          curl -fL --retry 4 --retry-delay 2 -o dist/addon/RetreatUI_v1.1.6.zip.sha256 \
+            "https://github.com/RetreatUI/RetreatUI-Addon/releases/download/v1.1.6/RetreatUI_v1.1.6.zip.sha256"
+          curl -fL --retry 4 --retry-delay 2 -o dist/launcher/RetreatUI_Launcher.exe \
+            "https://release-assets.githubusercontent.com/github-production-release-asset/1315203427/ab94be76-cae0-49c4-a8b8-1a56f3296370?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-07T09%3A13%3A19Z&rscd=attachment%3B+filename%3DRetreatUI_Launcher.exe&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-07T08%3A12%3A31Z&ske=2026-08-07T09%3A13%3A19Z&sks=b&skv=2018-11-09&sig=ljUYd%2B1XWO1gosFrDXnRHMk9qMBHRgFT9N1rfmsAiMw%3D"
+          curl -fL --retry 4 --retry-delay 2 -o dist/launcher/RetreatUI_Launcher.exe.sha256 \
+            "https://release-assets.githubusercontent.com/github-production-release-asset/1315203427/ffc1e8e9-16af-4133-b032-c502f89efa8a?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-07T09%3A11%3A09Z&rscd=attachment%3B+filename%3DRetreatUI_Launcher.exe.sha256&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-07T08%3A10%3A48Z&ske=2026-08-07T09%3A11%3A09Z&sks=b&skv=2018-11-09&sig=J%2FQ%2BEQnbgV5FssRVfxh8jHSvU42ss3sKM1TQpPNkal8%3D"
+          curl -fL --retry 4 --retry-delay 2 -o dist/launcher/RetreatUI_Launcher_win-x64.zip \
+            "https://release-assets.githubusercontent.com/github-production-release-asset/1315203427/3d60da97-bd4e-427c-b222-5cb26ffc0e6b?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-07T09%3A04%3A27Z&rscd=attachment%3B+filename%3DRetreatUI_Launcher_win-x64.zip&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-07T08%3A04%3A09Z&ske=2026-08-07T09%3A04%3A27Z&sks=b&skv=2018-11-09&sig=AvNlrzYr2WON3GjblBMRF3En05s%2BRunj%2FtlpajOClE8%3D"
 
       - name: Verify exact source assets
         shell: bash
@@ -47,7 +42,6 @@ jobs:
           test "$(stat -c%s dist/launcher/RetreatUI_Launcher.exe)" = "72064586"
           test "$(stat -c%s dist/launcher/RetreatUI_Launcher.exe.sha256)" = "90"
           test "$(stat -c%s dist/launcher/RetreatUI_Launcher_win-x64.zip)" = "66592334"
-
           ADDON_HASH="$(sha256sum dist/addon/RetreatUI_v1.1.6.zip | awk '{print $1}')"
           LAUNCHER_HASH="$(sha256sum dist/launcher/RetreatUI_Launcher.exe | awk '{print $1}')"
           LAUNCHER_ZIP_HASH="$(sha256sum dist/launcher/RetreatUI_Launcher_win-x64.zip | awk '{print $1}')"
@@ -69,7 +63,6 @@ jobs:
           else
             gh release create addon-v1.1.6 dist/addon/RetreatUI_v1.1.6.zip dist/addon/RetreatUI_v1.1.6.zip.sha256 --repo "$GITHUB_REPOSITORY" --title "RetreatUI 1.1.6" --notes "Verified public mirror of RetreatUI 1.1.6."
           fi
-
           if gh release view launcher-v0.3.8 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload launcher-v0.3.8 dist/launcher/RetreatUI_Launcher.exe dist/launcher/RetreatUI_Launcher.exe.sha256 dist/launcher/RetreatUI_Launcher_win-x64.zip --repo "$GITHUB_REPOSITORY" --clobber
             gh release edit launcher-v0.3.8 --repo "$GITHUB_REPOSITORY" --title "RetreatUI Launcher v0.3.8" --notes "Verified public mirror of RetreatUI Launcher 0.3.8."
@@ -85,7 +78,6 @@ jobs:
           set -euo pipefail
           ADDON_JSON="$(gh api "/repos/$GITHUB_REPOSITORY/releases/tags/addon-v1.1.6")"
           LAUNCHER_JSON="$(gh api "/repos/$GITHUB_REPOSITORY/releases/tags/launcher-v0.3.8")"
-
           echo "$ADDON_JSON" | jq -e '.draft == false and .prerelease == false' >/dev/null
           echo "$ADDON_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_v1.1.6.zip" and .size == 12899842 and .digest == "sha256:e8b9d748ba47eea77d752b7c82de6782587808ad8ce61a5fc69acc31efaf9510")' >/dev/null
           echo "$ADDON_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_v1.1.6.zip.sha256" and .size == 87)' >/dev/null
@@ -93,15 +85,12 @@ jobs:
           echo "$LAUNCHER_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_Launcher.exe" and .size == 72064586 and .digest == "sha256:5aaf2a44a57c51fcdaef1cb7bd568a46fa9b481f3a4c833a998477ec6a0a904d")' >/dev/null
           echo "$LAUNCHER_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_Launcher.exe.sha256" and .size == 90)' >/dev/null
           echo "$LAUNCHER_JSON" | jq -e '.assets[] | select(.name == "RetreatUI_Launcher_win-x64.zip" and .size == 66592334 and .digest == "sha256:3be17c87589d56ad1844529114f9247cc7c92c917bafbf537644b952652014b0")' >/dev/null
-
           ADDON_ENTRY="$(echo "$ADDON_JSON" | jq '{tag_name:"v1.1.6",name:"RetreatUI 1.1.6",body:"Verified RetreatUI 1.1.6 public release.",draft:false,prerelease:false,published_at:.published_at,assets:[.assets[] | select(.name == "RetreatUI_v1.1.6.zip" or .name == "RetreatUI_v1.1.6.zip.sha256") | {name,browser_download_url,size}]}')"
           LAUNCHER_ENTRY="$(echo "$LAUNCHER_JSON" | jq '{tag_name:"launcher-v0.3.8",name:"RetreatUI Launcher v0.3.8",body:"Verified RetreatUI Launcher 0.3.8 public release.",draft:false,prerelease:false,published_at:.published_at,assets:[.assets[] | select(.name == "RetreatUI_Launcher.exe" or .name == "RetreatUI_Launcher.exe.sha256" or .name == "RetreatUI_Launcher_win-x64.zip") | {name,browser_download_url,size}]}')"
-
           jq --argjson entry "$ADDON_ENTRY" '[ $entry ] + [ .[] | select(.tag_name != "v1.1.6") ] | .[:30]' feed/addon-releases.json > feed/addon-releases.json.tmp
           mv feed/addon-releases.json.tmp feed/addon-releases.json
           jq --argjson entry "$LAUNCHER_ENTRY" '[ $entry ] + [ .[] | select(.tag_name != "launcher-v0.3.8") ] | .[:30]' feed/launcher-releases.json > feed/launcher-releases.json.tmp
           mv feed/launcher-releases.json.tmp feed/launcher-releases.json
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add feed/addon-releases.json feed/launcher-releases.json
