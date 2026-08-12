@@ -38,7 +38,7 @@ function Invoke-External {
         [Parameter(Mandatory = $true)][string[]]$Arguments
     )
 
-    & $FilePath @Arguments
+    & $FilePath @Arguments 2>&1 | Out-Host
     if ($LASTEXITCODE -ne 0) {
         throw "Command failed with exit code ${LASTEXITCODE}: $FilePath $($Arguments -join ' ')"
     }
