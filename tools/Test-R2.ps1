@@ -33,7 +33,7 @@ function Invoke-Aws {
 }
 
 function Get-Feed([string]$Key) {
-    $url = "$PublicBaseUrl/$Key?v=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
+    $url = "${PublicBaseUrl}/${Key}?v=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
     $response = Invoke-WebRequest -Uri $url -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }
     if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) {
         throw "Feed request failed: $url"
@@ -56,7 +56,8 @@ function Assert-PublicAsset($Found) {
     if (-not $Found) { throw 'Required asset was not present in the live feed.' }
     $url = [string]$Found.Asset.browser_download_url
     if ([string]::IsNullOrWhiteSpace($url)) { throw 'Live feed asset has no download URL.' }
-    $response = Invoke-WebRequest -Uri "$url?v=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())" -Method Head -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }
+    $requestUrl = "${url}?v=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
+    $response = Invoke-WebRequest -Uri $requestUrl -Method Head -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }
     if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) { throw "Asset request failed: $url" }
     if ($Found.Asset.size -and $response.Headers['Content-Length']) {
         if ([long]$Found.Asset.size -ne [long]$response.Headers['Content-Length']) {
