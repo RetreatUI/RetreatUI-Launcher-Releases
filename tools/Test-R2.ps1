@@ -52,6 +52,14 @@ function Find-Asset($Releases, [string]$AssetName) {
     return $null
 }
 
+function Get-ContentLength($Response) {
+    $values = @($Response.Headers['Content-Length'])
+    if ($values.Count -eq 0 -or [string]::IsNullOrWhiteSpace([string]$values[0])) {
+        return $null
+    }
+    return [long]([string]$values[0])
+}
+
 function Assert-PublicAsset($Found) {
     if (-not $Found) { throw 'Required asset was not present in the live feed.' }
     $url = [string]$Found.Asset.browser_download_url
@@ -59,9 +67,11 @@ function Assert-PublicAsset($Found) {
     $requestUrl = "${url}?v=$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())"
     $response = Invoke-WebRequest -Uri $requestUrl -Method Head -UseBasicParsing -Headers @{ 'Cache-Control' = 'no-cache' }
     if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 300) { throw "Asset request failed: $url" }
-    if ($Found.Asset.size -and $response.Headers['Content-Length']) {
-        if ([long]$Found.Asset.size -ne [long]$response.Headers['Content-Length']) {
-            throw "Asset size mismatch for $($Found.Asset.name)."
+
+    $actualLength = Get-ContentLength $response
+    if ($Found.Asset.size -and $null -ne $actualLength) {
+        if ([long]$Found.Asset.size -ne $actualLength) {
+            throw "Asset size mismatch for $($Found.Asset.name): feed=$($Found.Asset.size), public=$actualLength."
         }
     }
     Write-Ok "$($Found.Asset.name) is publicly reachable"
