@@ -1,75 +1,69 @@
 # RetreatUI R2 release process
 
-Cloudflare R2 is the primary distribution source used by RetreatUI Launcher 0.3.12 and later. GitHub Releases/raw feed remain fallback sources only.
+Cloudflare R2 is the primary distribution source for RetreatUI Launcher 0.3.12 and later. GitHub Releases remain a fallback source, but GitHub Actions are not required for publishing new RetreatUI releases.
 
-The release PC already uses:
+## Verified release PC configuration
+
+The current release PC uses:
 
 - AWS CLI profile: `retreatui-r2`
 - R2 bucket: `retreatui-releases`
-- Public R2 host: `https://pub-1f3b72d79f1d4138945f7bd13e131def.r2.dev`
+- R2 S3 endpoint: `https://f2f139a476f03851f203d52e399a8ffb.eu.r2.cloudflarestorage.com`
+- Public distribution host: `https://pub-1f3b72d79f1d4138945f7bd13e131def.r2.dev`
 
-No Cloudflare access key or secret is stored in this repository.
+Credentials remain in the local AWS CLI profile and are never committed to GitHub.
 
-## Tools
+The following checks have been verified on the release PC:
 
-### `tools/Publish-R2.ps1`
+- CoA package dry-run
+- TBC package dry-run
+- Launcher .NET build/package dry-run
+- R2 read access
+- R2 write access
+- R2 metadata read-back
+- R2 delete access
+- Public CoA beta.19 asset access
+- Public Launcher 0.3.12 executable and SHA-256 access
+- TBC beta.16 GitHub fallback access
 
-Validated package builder. It downloads the requested source ref, validates release metadata and addon versions, creates the correct package, builds Launcher when needed, and creates the SHA-256 checksum.
+## Current live state
 
-Use this with `-DryRun` when checking package/build integrity only.
+- CoA `1.1.7-beta.19` is served from R2.
+- Launcher `0.3.12` is served from R2.
+- TBC `0.1.0-beta.16` is currently obtained through the verified GitHub Releases fallback.
+- The next TBC release should be published to R2 using the process below.
 
-### `tools/Publish-R2-Live.ps1`
+## Read-only pre-flight
 
-Production publisher. It first invokes the validated package builder above, then uses the existing AWS CLI R2 profile to publish the resulting files.
-
-The production publish order is deliberately fail-safe:
-
-1. Build and validate the package.
-2. Verify AWS CLI access to the R2 bucket.
-3. Refuse to reuse an existing immutable release object/version.
-4. Download the current live feed.
-5. Upload the release asset and SHA-256 checksum.
-6. Verify both files through the public R2 hostname.
-7. Upload a timestamped backup of the existing feed.
-8. Merge the new release into the feed.
-9. Upload the live feed **last**.
-10. Read the live feed back and verify the new release is visible.
-11. Update the local GitHub fallback feed mirror; optional normal `git push` does not require GitHub Actions.
-
-If anything fails before the live-feed upload, users cannot see a half-published release.
-
-### `tools/Test-R2.ps1`
-
-Read-only pre-flight test. It verifies the current live architecture without changing any R2 object.
-
-### `tools/Test-R2-Write.ps1`
-
-Isolated write/read/delete permission test. It creates a random object below `_healthchecks/`, reads its metadata back, and deletes it again. It never touches release assets or release feeds.
-
-## One-time requirements on the release PC
-
-- Windows PowerShell 5.1 or PowerShell 7.
-- AWS CLI with the `retreatui-r2` profile already configured.
-- For Launcher builds: .NET 8 SDK.
-- Git is optional and only needed for `-PushGitHubMirror`.
-
-Node.js and Wrangler are not required for the production AWS CLI release path.
-
-## Pre-flight checks
-
-Read-only live check:
+This verifies the current distribution state without modifying R2:
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Test-R2.ps1
 ```
 
-Safe write/read/delete permission check:
+Expected result:
+
+```text
+R2 PRE-FLIGHT PASSED
+```
+
+## Isolated R2 write test
+
+This writes a random object only below `_healthchecks/`, reads it back, and deletes it again. It never touches release files or feeds.
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Test-R2-Write.ps1
 ```
 
-## Package dry runs
+Expected result:
+
+```text
+R2 WRITE TEST PASSED
+```
+
+## Package-only validation
+
+`tools/Publish-R2.ps1` remains the validated package builder. Always use `-DryRun` when invoking it directly.
 
 CoA:
 
@@ -89,71 +83,116 @@ Launcher:
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Publish-R2.ps1 -Product Launcher -DryRun
 ```
 
-## Publish CoA
+The package builder validates source version metadata, required addon folders/files, launcher executable version and SHA-256 generation. No R2 object is changed in dry-run mode.
 
-After the intended CoA release is merged to `RetreatUI/RetreatUI-Addon` and its release manifest/version files contain the new version:
+## Live R2 publish
+
+The canonical live publisher is:
+
+`tools/Publish-R2-Live.ps1`
+
+It first invokes the validated package builder, then uses the existing AWS CLI profile to publish to R2.
+
+### CoA
+
+After the new version has been merged to `RetreatUI/RetreatUI-Addon` and its release manifest/version files agree:
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Publish-R2-Live.ps1 -Product CoA
 ```
 
-Immutable objects are stored as:
+Objects are stored as:
 
-`addons/coa/<version>/RetreatUI_v<version>.zip`
+```text
+addons/coa/<version>/RetreatUI_v<version>.zip
+addons/coa/<version>/RetreatUI_v<version>.zip.sha256
+```
 
-## Publish TBC
+### TBC
 
-After the intended TBC release is merged to `RetreatUI/RetreatUI-TBC`:
+After the new version has been merged to `RetreatUI/RetreatUI-TBC`:
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Publish-R2-Live.ps1 -Product TBC
 ```
 
-Immutable objects are stored as:
+Objects are stored as:
 
-`addons/tbc/<version>/RetreatUI_TBC_v<version>.zip`
+```text
+addons/tbc/<version>/RetreatUI_TBC_v<version>.zip
+addons/tbc/<version>/RetreatUI_TBC_v<version>.zip.sha256
+```
 
-TBC beta.16 predates this migration and is currently supplied by the verified GitHub Releases fallback. The next TBC version should be published through R2 with this command.
+### Launcher
 
-## Publish Launcher
-
-After the Launcher version is bumped and merged to `RetreatUI/RetreatUI-Launcher`:
+After the launcher project version has been bumped and merged to `RetreatUI/RetreatUI-Launcher`:
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Publish-R2-Live.ps1 -Product Launcher
 ```
 
-Launcher objects are stored under:
+The .NET 8 SDK is required. Objects are stored as:
 
-`launcher/<version>/RetreatUI_Launcher.exe`
-
-The live launcher feed requires both `RetreatUI_Launcher.exe` and `RetreatUI_Launcher.exe.sha256`.
-
-## Pin an exact source commit
-
-`main` is the default. For an already-reviewed exact commit:
-
-```powershell
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Publish-R2-Live.ps1 -Product CoA -Ref <commit-sha>
+```text
+launcher/<version>/RetreatUI_Launcher.exe
+launcher/<version>/RetreatUI_Launcher.exe.sha256
 ```
 
-## GitHub fallback feed mirror
+## Publish safety order
 
-Every successful live R2 publish updates the matching `feed/*.json` in the local clone.
+The live publisher follows this order:
 
-To also commit and push that fallback mirror with normal git, without GitHub Actions:
+1. Download the requested GitHub ref (`main` by default).
+2. Build and validate the package locally.
+3. Verify AWS profile/bucket access.
+4. Refuse to reuse an existing immutable release object unless disaster-recovery `-Force` is explicitly supplied.
+5. Load the current live feed before modifying anything.
+6. Upload the release asset and SHA-256.
+7. Verify both through the public R2 hostname.
+8. Upload a timestamped backup of the old feed under `feed/backups/`.
+9. Build the new merged feed.
+10. Upload the live feed **last**.
+11. Read the live feed back and verify the new release is visible.
+12. Update the local GitHub fallback feed mirror.
+
+A failure before the live-feed upload cannot advertise a half-published release.
+
+## Feed layout
+
+Addon releases share:
+
+```text
+feed/addon-releases.json
+```
+
+The launcher differentiates CoA and TBC by asset naming:
+
+- CoA: `RetreatUI_v...zip`
+- TBC: `RetreatUI_TBC_v...zip`
+
+Launcher self-update uses:
+
+```text
+feed/launcher-releases.json
+```
+
+## Optional GitHub fallback mirror push
+
+After R2 has been published and verified, the publisher updates the matching local `feed/*.json` mirror. To also commit and push that mirror without GitHub Actions:
 
 ```powershell
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\Publish-R2-Live.ps1 -Product CoA -PushGitHubMirror
 ```
 
-Failure of the optional GitHub mirror push does not invalidate a release that has already passed R2 verification.
+Use `TBC` or `Launcher` as required.
 
-## Safety rules
+Failure of the optional GitHub mirror push does not invalidate an already verified R2 release.
 
-- Never reuse a normal release version number.
-- Existing immutable R2 objects abort the release by default.
-- `-Force` is disaster-recovery only.
-- The live feed is always uploaded last.
-- A timestamped feed backup is written before every feed change.
-- Keep addon author metadata as `Retreat`; release tooling must never rewrite author fields.
+## Rules
+
+- Never reuse a normal release version.
+- Never use `-Force` for a routine release.
+- Never publish a version until source metadata and package versions agree.
+- Never manually update the live feed before its release assets are publicly reachable.
+- Keep addon author metadata as `Retreat`.
+- Do not store R2 credentials, AWS secrets or access keys in GitHub.
