@@ -26,11 +26,14 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 Write-Host "Publishing CoA TEST build from ref '$Ref'" -ForegroundColor Cyan
 Write-Host 'The source release manifest must remain publish=true and prerelease=true.' -ForegroundColor Yellow
 
-$args = @('-Product', 'CoA', '-Ref', $Ref)
-if ($PushGitHubMirror) { $args += '-PushGitHubMirror' }
-if ($KeepWork) { $args += '-KeepWork' }
+$publishParams = @{
+    Product = 'CoA'
+    Ref = $Ref
+}
+if ($PushGitHubMirror) { $publishParams.PushGitHubMirror = $true }
+if ($KeepWork) { $publishParams.KeepWork = $true }
 
-& $publisher @args
+& $publisher @publishParams
 if (-not $?) {
     throw 'CoA test publish failed.'
 }
