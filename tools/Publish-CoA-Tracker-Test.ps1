@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta26-tracker-hud-layout'
+    Ref = 'refs/heads/agent/beta27-tracker-hud-layout-polish'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA Tracker HUD Layout beta.26 test..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA Tracker HUD Layout beta.27 polish test..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.26 Tracker HUD Layout publish failed.' }
+if (-not $?) { throw 'beta.27 Tracker HUD Layout polish publish failed.' }
