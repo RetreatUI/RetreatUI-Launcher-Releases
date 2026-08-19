@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta29-native-wa-import-test'
+    Ref = 'refs/heads/agent/beta30-native-wa-duration-test'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA native WeakAuras beta.29 import test..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA native WeakAuras beta.30 duration test..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.29 native WeakAuras import test publish failed.' }
+if (-not $?) { throw 'beta.30 native WeakAuras duration test publish failed.' }
