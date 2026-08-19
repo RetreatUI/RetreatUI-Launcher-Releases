@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta31-tracker-editor-wa-action'
+    Ref = 'refs/heads/agent/beta32-managed-wa-update'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.31 Tracker Editor WeakAuras test..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.32 managed WeakAuras update test..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.31 Tracker Editor WeakAuras test publish failed.' }
+if (-not $?) { throw 'beta.32 managed WeakAuras update test publish failed.' }
