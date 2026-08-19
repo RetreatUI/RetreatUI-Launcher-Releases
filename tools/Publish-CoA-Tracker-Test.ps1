@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta28-ascension-profile-adapters'
+    Ref = 'refs/heads/agent/beta29-native-wa-import-test'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA Ascension Profile Adapter beta.28 test..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA native WeakAuras beta.29 import test..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.28 Ascension Profile Adapter publish failed.' }
+if (-not $?) { throw 'beta.29 native WeakAuras import test publish failed.' }
