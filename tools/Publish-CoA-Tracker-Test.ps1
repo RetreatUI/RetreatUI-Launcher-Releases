@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta37-native-charge-text'
+    Ref = 'refs/heads/agent/beta38-charge-text-no-cooldown-frame'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.37 native charge text test..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.38 native charge visual cleanup..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.37 native charge text test publish failed.' }
+if (-not $?) { throw 'beta.38 native charge visual cleanup publish failed.' }
