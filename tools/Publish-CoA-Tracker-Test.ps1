@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta35-authoritative-tracker-normalization'
+    Ref = 'refs/heads/agent/beta36-clean-charge-visuals'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.35 WeakAuras count layout test..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.36 clean charge visual test..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.35 WeakAuras count layout test publish failed.' }
+if (-not $?) { throw 'beta.36 clean charge visual test publish failed.' }
