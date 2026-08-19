@@ -2,7 +2,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$Ref = 'agent/beta21-naowh-coa-test',
+    [string]$Ref = 'refs/heads/agent/beta21-naowh-coa-test',
     [switch]$PushGitHubMirror,
     [switch]$KeepWork
 )
@@ -14,7 +14,7 @@ if ([string]::IsNullOrWhiteSpace($Ref)) {
     throw 'A GitHub branch/ref is required.'
 }
 
-if ($Ref -eq 'main') {
+if ($Ref -eq 'main' -or $Ref -eq 'refs/heads/main') {
     throw 'Publish-CoA-Test.ps1 is for prerelease branches only. Use Publish-R2-Live.ps1 for main/stable releases.'
 }
 
@@ -24,7 +24,7 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 Write-Host "Publishing CoA TEST build from ref '$Ref'" -ForegroundColor Cyan
-Write-Host 'The source release manifest must remain prerelease=true.' -ForegroundColor Yellow
+Write-Host 'The source release manifest must remain publish=true and prerelease=true.' -ForegroundColor Yellow
 
 $args = @('-Product', 'CoA', '-Ref', $Ref)
 if ($PushGitHubMirror) { $args += '-PushGitHubMirror' }
