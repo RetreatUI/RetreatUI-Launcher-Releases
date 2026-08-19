@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta39-destination-routing'
+    Ref = 'refs/heads/agent/beta40-elvui-target-debuff-filter'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.39 destination routing test..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.40 ElvUI target debuff filter fix..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.39 destination routing test publish failed.' }
+if (-not $?) { throw 'beta.40 ElvUI target debuff filter test publish failed.' }
