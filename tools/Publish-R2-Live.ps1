@@ -66,7 +66,7 @@ function Invoke-Aws {
 function Assert-R2Access([string]$Aws) {
     Write-Step 'Checking R2 write profile and bucket access'
     $args = @('s3api', 'list-objects-v2', '--bucket', $Bucket, '--max-keys', '1') + (Get-AwsBaseArgs)
-    Invoke-Aws -Aws $Aws -Arguments $args
+    Invoke-Aws -Aws $aws -Arguments $args
     Write-Ok "AWS profile '$AwsProfile' can access bucket '$Bucket'"
 }
 
@@ -179,9 +179,14 @@ function Invoke-Packager {
     }
 
     Write-Step "Running validated $Product packager"
-    $packagerArgs = @('-Product', $Product, '-Ref', $Ref, '-DryRun', '-KeepWork')
-    if ($NotesFile) { $packagerArgs += @('-NotesFile', $NotesFile) }
-    & $packager @packagerArgs
+    $packagerParams = @{
+        Product = $Product
+        Ref = $Ref
+        DryRun = $true
+        KeepWork = $true
+    }
+    if ($NotesFile) { $packagerParams.NotesFile = $NotesFile }
+    & $packager @packagerParams
     if (-not $?) { throw 'The validated package build failed.' }
 
     $newRoots = @(Get-ChildItem -LiteralPath $tempRoot -Directory -Filter 'RetreatUI-R2-Release-*' -ErrorAction SilentlyContinue | Where-Object {
