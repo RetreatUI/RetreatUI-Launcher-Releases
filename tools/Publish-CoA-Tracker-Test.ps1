@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta50-reference-profile-runtime'
+    Ref = 'refs/heads/agent/beta51-installer-redesign'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.50 Unified Installer and HUD Unlock..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.51 Installer Redesign..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.50 Unified Installer and HUD Unlock publish failed.' }
+if (-not $?) { throw 'beta.51 Installer Redesign publish failed.' }
