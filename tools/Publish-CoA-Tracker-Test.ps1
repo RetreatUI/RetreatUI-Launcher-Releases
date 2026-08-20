@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta46-integrated-hud-bars'
+    Ref = 'refs/heads/agent/beta47-visual-scale-fix'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.46 Integrated HUD Bars..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.47 Visual Scale Fix..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.46 Integrated HUD Bars publish failed.' }
+if (-not $?) { throw 'beta.47 Visual Scale Fix publish failed.' }
