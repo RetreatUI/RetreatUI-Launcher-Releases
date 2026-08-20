@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta47-visual-scale-fix'
+    Ref = 'refs/heads/agent/beta48-real-profile-switch'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.47 Visual Scale Fix..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.48 Real Profile Switching..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.47 Visual Scale Fix publish failed.' }
+if (-not $?) { throw 'beta.48 Real Profile Switching publish failed.' }
