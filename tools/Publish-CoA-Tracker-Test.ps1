@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta48-real-profile-switch'
+    Ref = 'refs/heads/agent/beta49-native-profile-packs'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.48 Real Profile Switching..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.49 Native Profile Packs..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.48 Real Profile Switching publish failed.' }
+if (-not $?) { throw 'beta.49 Native Profile Packs publish failed.' }
