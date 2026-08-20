@@ -14,10 +14,10 @@ if (-not (Test-Path -LiteralPath $publisher -PathType Leaf)) {
 }
 
 $params = @{
-    Ref = 'refs/heads/agent/beta43-full-coa-spell-effect-audit'
+    Ref = 'refs/heads/agent/beta44-aura-destination-hotfix'
 }
 if ($KeepWork) { $params.KeepWork = $true }
 
-Write-Host "Publishing RetreatUI CoA beta.43 Full CoA Spell Effect Audit..." -ForegroundColor Cyan
+Write-Host "Publishing RetreatUI CoA beta.44 Aura Destination Hotfix..." -ForegroundColor Cyan
 & $publisher @params
-if (-not $?) { throw 'beta.43 Full CoA Spell Effect Audit publish failed.' }
+if (-not $?) { throw 'beta.44 Aura Destination Hotfix publish failed.' }
